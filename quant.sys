@@ -1,11 +1,16 @@
 import { syn } from "./syn.js";
+import { router } from "./router.js";
+import { atlantisTor } from "./one.room";
 
-export function engine(SYN, QUANT) {
-    const phi = 1.618;
-    const R = (SYN + QUANT) / phi;
+export function engine(input) {
+  const SYN = syn(input);
+  const QUANT = input * 9;
 
-    if (R > 0.66) return ["△1","△2","△3"];     // OK, FLOW, ROOT
-    if (R < 0.33) return ["△7","△8","△9"];     // NOK, BREAK, ECHO
+  const route = router(SYN, QUANT);
 
-    return ["△4","△5","△6"];                  // TOR, TOR_invert, TOR_echo
+  if (route.bahn === "TOR") {
+    return atlantisTor(route.respo[1]); // TOR_INVERT
+  }
+
+  return route.respo;
 }
