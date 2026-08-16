@@ -1,9 +1,11 @@
-d: TMP.1
-e: TMP.2
-i: TMP.3
-n: TMP.4
-o: TMP.5
-r: TMP.6
-s: TMP.7
-u: TMP.8
-w: TMP.9
+export const COMMANDS = {
+  d: "RUN_3TEL",
+  e: "RUN_6TEL",
+  f: "RUN_9TEL",
+  g: "RUN_VECTOR",
+  h: "RUN_TOR",
+  i: "RUN_INVERT",
+  j: "RUN_ECHO",
+  k: "RUN_BREAK",
+  w: "RUN_ROOT"
+};
