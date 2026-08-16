@@ -1,9 +1,11 @@
-TOP:
-[HS1] → OK
-[HS2] → FLOW
-[HS3] → ROOT
+import { syn } from "./syn.js";
 
-BOTTOM:
-[HS4] → NOK
-[HS5] → BREAK (verkehrt herum)
-[HS6] → ECHO
+export function engine(SYN, QUANT) {
+    const phi = 1.618;
+    const R = (SYN + QUANT) / phi;
+
+    if (R > 0.66) return ["△1","△2","△3"];     // OK, FLOW, ROOT
+    if (R < 0.33) return ["△7","△8","△9"];     // NOK, BREAK, ECHO
+
+    return ["△4","△5","△6"];                  // TOR, TOR_invert, TOR_echo
+}
