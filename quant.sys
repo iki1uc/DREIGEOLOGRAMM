@@ -1,16 +1,17 @@
 import { syn } from "./syn.js";
-import { router } from "./router.js";
-import { atlantisTor } from "./one.room";
+import { qua } from "./qua.js";
+import { ROUTER } from "./ROUTER.js";
+import { atlantis } from "./one.room";
 
 export function engine(input) {
-  const SYN = syn(input);
-  const QUANT = input * 9;
+  const S = syn(input).syn;
+  const Q = qua(input).quant;
 
-  const route = router(SYN, QUANT);
+  const route = ROUTER(S, Q);
 
-  if (route.bahn === "TOR") {
-    return atlantisTor(route.respo[1]); // TOR_INVERT
+  if (route.includes("TOR")) {
+    return atlantis(route[1]); // TOR_INVERT
   }
 
-  return route.respo;
+  return route;
 }
