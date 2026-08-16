@@ -1,1 +1,5 @@
+export const mode6 = {
+  quant: x => x * 6,
+  tag: "MODE_6TEL"
+};
 
