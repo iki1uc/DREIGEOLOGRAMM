@@ -1,5 +1,7 @@
-export const kreis = {
-  vector: "VECTOR_STRICH",
-  rotation: "GEGENZEIT",
-  mode: "DREIGEOLOGRAMM"
-};
+export function kreisel(state) {
+  return {
+    spin: state * 1.618,
+    vector: "VECTOR_STRICH",
+    mode: "KREISEL"
+  };
+}
