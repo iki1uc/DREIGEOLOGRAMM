@@ -1,14 +1,7 @@
-#SLIDE
-SLIDE.hdf
-→ wird in /SLIDE/HDF/ verschoben
-→ wird dort verarbeitet
-x.hdf
-#HDFRESPO
-HDFRESPO.hdf
-→ wird in /HDF/respo/ verschoben
-→ wird dort ausgeführt
-z.hdf
-#ID
-ID.hdf
-→ wird in /SLIDE/ID/ verschoben
-→ wird dort verarbeitet
+export function atlantisTor(mode) {
+  switch (mode) {
+    case "TOR": return "ROOT";
+    case "TOR_INVERT": return "BREAK";
+    case "TOR_ECHO": return "ECHO";
+  }
+}
