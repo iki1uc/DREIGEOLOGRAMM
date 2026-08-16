@@ -1,5 +1,8 @@
-export const invert = {
-  tor: ["△4_TOR", "△5_TOR_INVERT", "△6_TOR_ECHO"],
-  vector: "VECTOR_INVERT",
-  mode: "TOR_MODE"
-};
+export function qua(x) {
+  return {
+    quant: x * 9,
+    phi: 1.618,
+    res: (x * 9) / 1.618,
+    mode: "QUANT"
+  };
+}
