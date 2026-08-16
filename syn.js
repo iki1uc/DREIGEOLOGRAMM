@@ -1,3 +1,6 @@
 export function syn(x) {
-  return x * 3; // deine 3TEL-Regel
+  return {
+    syn: x * 3,
+    mode: "SYN"
+  };
 }
