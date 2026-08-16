@@ -1,0 +1,14 @@
+TOP (3):
+△1 OK
+△2 FLOW
+△3 ROOT
+
+MID (3):
+△4 TOR
+△5 TOR_invert
+△6 TOR_echo
+
+BOTTOM (3):
+△7 NOK
+△8 BREAK
+△9 ECHO
