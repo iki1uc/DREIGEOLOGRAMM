@@ -1,1 +1,4 @@
-
+export const mode3 = {
+  syn: x => x * 3,
+  tag: "MODE_3TEL"
+};
