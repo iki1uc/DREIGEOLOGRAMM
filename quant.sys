@@ -1,0 +1,9 @@
+TOP:
+[HS1] → OK
+[HS2] → FLOW
+[HS3] → ROOT
+
+BOTTOM:
+[HS4] → NOK
+[HS5] → BREAK (verkehrt herum)
+[HS6] → ECHO
