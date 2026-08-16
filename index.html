@@ -1,80 +1,61 @@
 <!DOCTYPE html>
-<html lang="de">
+<html>
 <head>
-<meta charset="UTF-8">
-<title>HDF · ASCII · GEO · AMIGA · GTA‑6</title>
-
-<style>
-    body { background:#000; color:#0f0; font-family:Consolas, monospace; padding:20px; }
-    h1 { color:#ff00ff; text-shadow:0 0 10px #ff00ff; }
-    .block { background:#111; padding:15px; border-left:4px solid #ff00ff; margin-bottom:20px; }
-    pre { white-space:pre-wrap; background:#000; padding:12px; border-left:3px solid #00e0ff; }
-</style>
-
-<script type="module" src="../SLIDE/geom.js"></script>
-<script type="module" src="../SLIDE/transform.js"></script>
-<script type="module" src="../SLIDE/full.js"></script>
-<script type="module" src="../TOR/VEC.tor"></script>
-<script type="module" src="../TOR/TOR.respo.js"></script>
-<script type="module" src="../TOR/VERIFY.js"></script>
-<script type="module" src="../TOR/Vector.run.js"></script>
-<script type="module" src="../STATION/live-core.js"></script>
-<script type="module" src="../STATION/live-pulse.js"></script>
-<script type="module" src="../STATION/live-sync.js"></script>
-<script type="module" src="../STATION/live-router.js"></script>
-<script type="module" src="../STATION/live-websocket.js"></script>
-<script type="module" src="./tmp.hdf.resolver.js"></script>
-
+  <title>iki1uc · Live Engine</title>
+  <style>
+    body { background:#000; color:#0f0; font-family:monospace; }
+    #console { white-space:pre; padding:20px; border:1px solid #0f0; }
+    input { background:#111; color:#0f0; border:1px solid #0f0; padding:5px; }
+  </style>
 </head>
-
 <body>
 
-<h1>HDF · ASCII · GEO · AMIGA · GTA‑6</h1>
+<h1>iki1uc · Live Engine Console</h1>
 
-<div class="block">
-    <h2>ASCII · GEO‑3D</h2>
-    <pre id="geo3d"></pre>
-</div>
+Input: <input id="engineInput" type="number" value="3">
+<button onclick="runEngine()">RUN</button>
 
-<div class="block">
-    <h2>AMIGA‑SCENE</h2>
-    <pre id="amiga"></pre>
-</div>
+<div id="console"></div>
 
-<div class="block">
-    <h2>WARP‑TUNNEL</h2>
-    <pre id="warp"></pre>
-</div>
+<script type="module">
+  import { syn } from "./syn.js";
+  import { qua } from "./qua.js";
+  import { ROUTER } from "./ROUTER.js";
+  import { atlantis } from "./one.room";
+  import { generate81 } from "./81.room";
+  import { COMMANDS } from "./COMMANDS.room";
 
-<div class="block">
-    <h2>GTA‑6 · ASCII‑LIVE</h2>
-    <pre id="gta"></pre>
-</div>
+  function log(msg) {
+    document.getElementById("console").innerText += msg + "\n";
+  }
 
-<div class="block">
-    <h2>HDF · 81.room</h2>
-    <pre id="room81"></pre>
-</div>
+  window.runEngine = function() {
+    document.getElementById("console").innerText = "";
 
-<div class="block">
-    <h2>HDF · 9.room</h2>
-    <pre id="room9"></pre>
-</div>
+    const input = Number(document.getElementById("engineInput").value);
 
-<div class="block">
-    <h2>HDF · COMMANDS.room</h2>
-    <pre id="commands"></pre>
-</div>
+    const S = syn(input).syn;
+    const Q = qua(input).quant;
 
-<div class="block">
-    <h2>HDF · one.room</h2>
-    <pre id="one"></pre>
-</div>
+    log("SYN: " + S);
+    log("QUANT: " + Q);
 
-<div class="block">
-    <h2>TOR · Vector Engine</h2>
-    <pre id="vec"></pre>
-</div>
+    const route = ROUTER(S, Q);
+    log("ROUTER: " + JSON.stringify(route));
 
-<div class="block">
-    <h2>STATION · LIVE</h2>
+    if (route.includes("TOR")) {
+      const tor = atlantis(route[1]);
+      log("ATLANTIS TOR: " + tor);
+    }
+
+    const matrix81 = generate81();
+    log("81.room generated:");
+    log(JSON.stringify(matrix81, null, 2));
+
+    log("COMMANDS:");
+    log(JSON.stringify(COMMANDS, null, 2));
+  };
+</script>
+
+</body>
+</html>
