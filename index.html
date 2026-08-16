@@ -1,61 +1,772 @@
 <!DOCTYPE html>
-<html>
+<html lang="de">
 <head>
-  <title>iki1uc · Live Engine</title>
-  <style>
-    body { background:#000; color:#0f0; font-family:monospace; }
-    #console { white-space:pre; padding:20px; border:1px solid #0f0; }
-    input { background:#111; color:#0f0; border:1px solid #0f0; padding:5px; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GRÜNDER · STATION · FLÜSSIG · VERFORMBAR</title>
+
+<style>
+:root {
+    --bg: #0a0a0f;
+    --fg: #0f0;
+    --gold: #ffd700;
+    --hg: #ff6b6b;  /* Quecksilber */
+    --fl: #6bcfff;  /* Flüssig */
+    --lf: #ffd93d;  /* Leitfähig */
+    --vz: #ff44ff;  /* Verletzt */
+    --core: #6cf;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: 'Consolas', monospace;
+    min-height: 100vh;
+    overflow: hidden;
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    gap: 4px;
+    padding: 8px;
+}
+
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid var(--gold);
+    padding-bottom: 4px;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+header h1 {
+    font-size: 14px;
+    color: var(--gold);
+    text-shadow: 0 0 20px var(--gold);
+    letter-spacing: 3px;
+}
+header h1 .gru { color: var(--hg); }
+header h1 .der { color: var(--fl); }
+header h1 .stat { color: var(--core); }
+#info-bar { font-size: 8px; color: #666; display: flex; gap: 6px; align-items: center; }
+
+main {
+    display: grid;
+    grid-template-columns: 3fr 1.2fr;
+    gap: 4px;
+    height: 100%;
+    min-height: 0;
+}
+
+#canvas-wrap {
+    background: #0a0a0f;
+    border: 1px solid #1a1a2a;
+    border-radius: 8px;
+    padding: 4px;
+    position: relative;
+    overflow: hidden;
+}
+#canvas-wrap canvas {
+    width: 100%;
+    height: 100%;
+    border-radius: 4px;
+    display: block;
+}
+#canvas-overlay {
+    position: absolute;
+    bottom: 8px;
+    left: 8px;
+    font-size: 7px;
+    color: #444;
+    pointer-events: none;
+    background: rgba(0,0,0,0.7);
+    padding: 3px 8px;
+    border-radius: 3px;
+}
+#canvas-overlay .hg { color: var(--hg); }
+#canvas-overlay .fl { color: var(--fl); }
+
+#panel {
+    background: #0a0a0f;
+    border: 1px solid #1a1a2a;
+    border-radius: 8px;
+    padding: 4px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    overflow-y: auto;
+    max-height: 100%;
+    font-size: 8px;
+}
+#panel h3 { font-size: 8px; color: #666; border-bottom: 1px solid #1a1a2a; padding-bottom: 2px; }
+
+#log {
+    flex: 1;
+    overflow-y: auto;
+    font-size: 7px;
+    color: #6a6a8a;
+    line-height: 1.2;
+    min-height: 30px;
+    max-height: 60px;
+    background: #06060a;
+    border-radius: 3px;
+    padding: 2px 4px;
+}
+#log .entry { padding: 1px 0; border-bottom: 1px solid #0a0a12; }
+#log .time { color: #444; }
+#log .msg.ok { color: #4f4; }
+#log .msg.hg { color: var(--hg); }
+#log .msg.fl { color: var(--fl); }
+#log .msg.lf { color: var(--lf); }
+#log .msg.vz { color: var(--vz); }
+
+#metrics {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    gap: 2px;
+}
+.metric {
+    background: #0e0e1a;
+    border-radius: 3px;
+    padding: 2px 3px;
+    text-align: center;
+    border: 1px solid #1a1a2a;
+}
+.metric .label { color: #666; font-size: 5px; text-transform: uppercase; }
+.metric .value { font-size: 9px; font-weight: bold; }
+.metric.hg .value { color: var(--hg); }
+.metric.fl .value { color: var(--fl); }
+.metric.lf .value { color: var(--lf); }
+.metric.vz .value { color: var(--vz); }
+
+#controls {
+    display: flex;
+    gap: 2px;
+    flex-wrap: wrap;
+}
+button {
+    background: #111;
+    color: var(--fg);
+    border: 1px solid #333;
+    padding: 2px 6px;
+    border-radius: 2px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 7px;
+    transition: all 0.2s;
+}
+button:hover { background: #1a1a2a; border-color: var(--gold); }
+button:active { transform: scale(0.95); }
+button.primary { border-color: var(--gold); color: var(--gold); }
+button.primary:hover { background: var(--gold); color: #000; }
+button.hg { border-color: var(--hg); color: var(--hg); }
+button.hg:hover { background: var(--hg); color: #000; }
+button.fl { border-color: var(--fl); color: var(--fl); }
+button.fl:hover { background: var(--fl); color: #000; }
+button.danger { border-color: #f44; color: #f44; }
+button.danger:hover { background: #f44; color: #000; }
+
+@media (max-width: 800px) {
+    main { grid-template-columns: 1fr; }
+    #panel { max-height: 180px; }
+}
+</style>
 </head>
 <body>
 
-<h1>iki1uc · Live Engine Console</h1>
+<header>
+    <h1>
+        <span class="gru">⚡ GRÜNDER</span>
+        <span style="color:#666;">·</span>
+        <span class="der">STATION</span>
+        <span style="color:#666;">·</span>
+        <span class="stat">⚡ FLÜSSIG</span>
+        <span style="color:#666;">·</span>
+        <span style="color:var(--hg);">Hg</span>
+    </h1>
+    <div id="info-bar">
+        <span id="clock">⏱️ --:--:--</span>
+        <span id="state-display" style="color:var(--hg);">● flüssig</span>
+        <span id="cycle-display" style="color:#666;">CYC 0</span>
+    </div>
+</header>
 
-Input: <input id="engineInput" type="number" value="3">
-<button onclick="runEngine()">RUN</button>
+<main>
+    <div id="canvas-wrap">
+        <canvas id="gruCanvas"></canvas>
+        <div id="canvas-overlay">
+            <span class="hg">●</span> Hg · <span class="fl">●</span> verformbar · leitet · verletzt
+        </div>
+    </div>
 
-<div id="console"></div>
+    <div id="panel">
+        <h3>⚡ GRÜNDER · Hg · FLÜSSIG</h3>
 
-<script type="module">
-  import { syn } from "./syn.js";
-  import { qua } from "./qua.js";
-  import { ROUTER } from "./ROUTER.js";
-  import { atlantis } from "./one.room";
-  import { generate81 } from "./81.room";
-  import { COMMANDS } from "./COMMANDS.room";
+        <div id="metrics">
+            <div class="metric hg"><div class="label">QUEcksilber</div><div class="value" id="hg-value">0%</div></div>
+            <div class="metric fl"><div class="label">VERFORMBAR</div><div class="value" id="fl-value">0%</div></div>
+            <div class="metric lf"><div class="label">LEITFÄHIG</div><div class="value" id="lf-value">0%</div></div>
+            <div class="metric vz"><div class="label">VERLETZT</div><div class="value" id="vz-value">0%</div></div>
+        </div>
 
-  function log(msg) {
-    document.getElementById("console").innerText += msg + "\n";
-  }
+        <div id="log">
+            <div class="entry"><span class="time">[INIT]</span> <span class="msg ok">⚡ GRÜNDER · STATION · Hg</span></div>
+            <div class="entry"><span class="time">[INIT]</span> <span class="msg hg">Quecksilber · flüssig · 13.546 g/cm³</span></div>
+            <div class="entry"><span class="time">[INIT]</span> <span class="msg fl">Verformbar · leitet · verletzt</span></div>
+        </div>
 
-  window.runEngine = function() {
-    document.getElementById("console").innerText = "";
+        <div id="controls">
+            <button class="primary" id="btn-start">▶ START</button>
+            <button class="hg" id="btn-hg">⚡ Hg</button>
+            <button class="fl" id="btn-fl">🌀 VERFORMEN</button>
+            <button class="danger" id="btn-reset">⟲ RESET</button>
+            <button id="btn-auto">▶ AUTO</button>
+        </div>
+    </div>
+</main>
 
-    const input = Number(document.getElementById("engineInput").value);
+<script>
+// ============================================================
+// 1. GRÜNDER · STATION · QUEcksilber
+// ============================================================
 
-    const S = syn(input).syn;
-    const Q = qua(input).quant;
+// --- KONSTANTEN ---
+const PHI = 1.61803398875;
+const Hg_DICHTE = 13.546;
 
-    log("SYN: " + S);
-    log("QUANT: " + Q);
+// --- 3-6-9-81-243-729-2268 (aus deinen Dateien) ---
+const MODES = {
+    '3': { label: '3TEL', fn: (x) => x * 3 },
+    '6': { label: '6TEL', fn: (x) => x * 6 },
+    '9': { label: '9TEL', fn: (x) => x * 9 },
+    '81': { label: '81TEL', fn: (x) => x * 81 },
+    '243': { label: '243TEL', fn: (x) => x * 243 }
+};
 
-    const route = ROUTER(S, Q);
-    log("ROUTER: " + JSON.stringify(route));
+// --- DREIGEOLOGRAMM (aus 3eck.js) ---
+const DREIGEOLOGRAMM = {
+    top: ["△1_OK", "△2_FLOW", "△3_ROOT"],
+    mid: ["△4_TOR", "△5_TOR_INVERT", "△6_TOR_ECHO"],
+    bottom: ["△7_NOK", "△8_BREAK", "△9_ECHO"]
+};
 
-    if (route.includes("TOR")) {
-      const tor = atlantis(route[1]);
-      log("ATLANTIS TOR: " + tor);
+// --- 81.ROOM ---
+function generate81() {
+    const matrix = {};
+    const letters = ["d","e","f","g","h","i","j","k","w"];
+    letters.forEach(letter => {
+        matrix[letter] = [];
+        for (let n = 1; n <= 9; n++) {
+            matrix[letter].push(`${letter}${n}`);
+        }
+    });
+    return matrix;
+}
+
+// --- COMMANDS ---
+const COMMANDS = {
+    d: "RUN_3TEL",
+    e: "RUN_6TEL",
+    f: "RUN_9TEL",
+    g: "RUN_VECTOR",
+    h: "RUN_TOR",
+    i: "RUN_INVERT",
+    j: "RUN_ECHO",
+    k: "RUN_BREAK",
+    w: "RUN_ROOT"
+};
+
+// ============================================================
+// 2. CANVAS SETUP
+// ============================================================
+const canvas = document.getElementById('gruCanvas');
+const ctx = canvas.getContext('2d');
+let W, H, cx, cy, radius;
+
+function resizeCanvas() {
+    const wrap = document.getElementById('canvas-wrap');
+    const rect = wrap.getBoundingClientRect();
+    canvas.width = rect.width;
+    canvas.height = rect.height;
+    W = canvas.width; H = canvas.height;
+    cx = W / 2; cy = H / 2;
+    radius = Math.min(W, H) * 0.38;
+}
+resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
+
+// ============================================================
+// 3. STATE — GRÜNDER · QUEcksilber
+// ============================================================
+const state = {
+    running: false,
+    paused: false,
+    autoMode: false,
+    cycle: 0,
+    t: 0,
+
+    // Quecksilber-Eigenschaften
+    hg: 0.5,        // Dichte / Flüssigkeit
+    form: 0.5,      // Verformbarkeit
+    leit: 0.5,      // Leitfähigkeit
+    verletzt: 0.5,  // Verletzung
+
+    // SYN/QUANT/RESPO
+    syn: 0.5,
+    quant: 0.5,
+    respo: 0.5,
+
+    // 3-6-9-81
+    mode: '3',
+    value: 3,
+
+    // DREIGEOLOGRAMM
+    dreieck: DREIGEOLOGRAMM.top,
+
+    // 81.ROOM
+    matrix81: generate81(),
+
+    // Verformungs-Geschwindigkeit (wie Quecksilber)
+    speed: 1.0
+};
+
+// ============================================================
+// 4. LOG
+// ============================================================
+function log(msg, type = 'info') {
+    const logDiv = document.getElementById('log');
+    const entry = document.createElement('div');
+    entry.className = 'entry';
+    const time = new Date().toLocaleTimeString();
+    const cls = type === 'ok' ? 'ok' : type === 'hg' ? 'hg' : type === 'fl' ? 'fl' :
+                type === 'lf' ? 'lf' : type === 'vz' ? 'vz' : '';
+    entry.innerHTML = `<span class="time">[${time}]</span> <span class="msg ${cls}">${msg}</span>`;
+    logDiv.appendChild(entry);
+    logDiv.scrollTop = logDiv.scrollHeight;
+    while (logDiv.children.length > 50) logDiv.removeChild(logDiv.firstChild);
+}
+
+// ============================================================
+// 5. GRÜNDER · KERN
+// ============================================================
+
+// --- SYN berechnen ---
+function computeSyn(x) {
+    return x * 3;
+}
+
+// --- QUANT berechnen ---
+function computeQuant(x) {
+    return x * 9;
+}
+
+// --- RESPO berechnen ---
+function computeRespo(syn, quant) {
+    return (syn + quant) / PHI;
+}
+
+// --- ROUTER (aus ROUTER.js) ---
+function router(syn, quant) {
+    const R = (syn + quant) / PHI;
+    if (R > 0.66) return DREIGEOLOGRAMM.top;
+    if (R < 0.33) return DREIGEOLOGRAMM.bottom;
+    return DREIGEOLOGRAMM.mid;
+}
+
+// --- ATLANTIS TOR (aus one.room) ---
+function atlantisTor(mode) {
+    switch (mode) {
+        case "TOR": return "ROOT";
+        case "TOR_INVERT": return "BREAK";
+        case "TOR_ECHO": return "ECHO";
+        default: return "VOID";
+    }
+}
+
+// --- QUEcksilber-Dynamik ---
+function updateHg(dt) {
+    // Quecksilber fließt wie flüssiges Metall
+    const flow = Math.sin(state.t * 0.7 + state.cycle * 0.1) * 0.5 + 0.5;
+
+    // Verformung (wie Quecksilber: schnell, reaktiv)
+    state.hg = 0.3 + 0.7 * (0.5 + 0.5 * Math.sin(state.t * 1.3 + flow * 2));
+
+    // Verformbarkeit = wie schnell es sich ändert
+    state.form = 0.2 + 0.8 * (0.5 + 0.5 * Math.cos(state.t * 0.9 + flow * 1.5));
+
+    // Leitfähigkeit (Quecksilber leitet)
+    state.leit = 0.4 + 0.6 * (0.5 + 0.5 * Math.sin(state.t * 0.5 + state.form * 0.5));
+
+    // Verletzung (reaktive Oberfläche)
+    state.verletzt = 0.1 + 0.9 * (0.5 + 0.5 * Math.sin(state.t * 1.1 + state.hg * 0.7));
+
+    // Begrenzung
+    state.hg = Math.min(1, Math.max(0.05, state.hg));
+    state.form = Math.min(1, Math.max(0.05, state.form));
+    state.leit = Math.min(1, Math.max(0.05, state.leit));
+    state.verletzt = Math.min(1, Math.max(0.05, state.verletzt));
+
+    // Metriken
+    document.getElementById('hg-value').textContent = (state.hg * 100).toFixed(0) + '%';
+    document.getElementById('fl-value').textContent = (state.form * 100).toFixed(0) + '%';
+    document.getElementById('lf-value').textContent = (state.leit * 100).toFixed(0) + '%';
+    document.getElementById('vz-value').textContent = (state.verletzt * 100).toFixed(0) + '%';
+}
+
+// --- GRÜNDER-CYCLE ---
+function grunderCycle() {
+    state.cycle++;
+
+    // SYN/QUANT aus MODES
+    const mode = MODES[state.mode] || MODES['3'];
+    state.value = mode.fn(state.cycle % 10 + 1);
+    state.syn = computeSyn(state.value);
+    state.quant = computeQuant(state.value);
+    state.respo = computeRespo(state.syn, state.quant);
+
+    // ROUTER
+    state.dreieck = router(state.syn, state.quant);
+
+    // Modus wechseln (3-6-9-81)
+    const modes = ['3', '6', '9', '81'];
+    const idx = state.cycle % modes.length;
+    state.mode = modes[idx];
+
+    // Log
+    if (state.cycle % 5 === 0) {
+        log(`🌀 CYC ${state.cycle}: ${state.mode}TEL · Hg=${(state.hg*100).toFixed(0)}% · Form=${(state.form*100).toFixed(0)}%`, 'fl');
     }
 
-    const matrix81 = generate81();
-    log("81.room generated:");
-    log(JSON.stringify(matrix81, null, 2));
+    // Bei Verletzung > 80%
+    if (state.verletzt > 0.8) {
+        log(`⚡ VERLETZT! · ${(state.verletzt*100).toFixed(0)}% · Reaktion!`, 'vz');
+    }
 
-    log("COMMANDS:");
-    log(JSON.stringify(COMMANDS, null, 2));
-  };
+    // Dreieck-Status
+    if (state.cycle % 10 === 0) {
+        const tri = state.dreieck[Math.floor(Math.random() * state.dreieck.length)];
+        log(`△ ${tri} · ${atlantisTor(tri.replace('△', ''))}`, 'hg');
+    }
+}
+
+// ============================================================
+// 6. RENDER — GRÜNDER · Hg
+// ============================================================
+function render() {
+    if (state.paused) {
+        requestAnimationFrame(render);
+        return;
+    }
+
+    ctx.clearRect(0, 0, W, H);
+
+    // Hintergrund
+    const grad = ctx.createRadialGradient(cx, cy, 10, cx, cy, W * 0.6);
+    grad.addColorStop(0, '#0a0a1a');
+    grad.addColorStop(1, '#000');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, W, H);
+
+    // 1. QUEcksilber-Tropfen
+    drawHgDrop();
+
+    // 2. Verformungsnetz
+    drawFormNetz();
+
+    // 3. Leitfähigkeits-Linien
+    drawLeitLinien();
+
+    // 4. RESPO-Kern
+    drawRespo();
+
+    // 5. 3-6-9-81
+    drawMode();
+
+    // Update
+    state.t += 0.008;
+    if (state.running) {
+        updateHg(0.016);
+        if (state.t > 0.1) {
+            grunderCycle();
+            state.t = 0;
+        }
+    }
+
+    if (state.cycle % 15 === 0) {
+        document.getElementById('cycle-display').textContent = `CYC ${state.cycle}`;
+    }
+
+    requestAnimationFrame(render);
+}
+render();
+
+// ============================================================
+// 7. ZEICHEN-FUNKTIONEN
+// ============================================================
+
+function drawHgDrop() {
+    const hg = state.hg;
+    const form = state.form;
+    const r = radius * (0.15 + hg * 0.3);
+
+    // Quecksilber-Glow
+    const glow = ctx.createRadialGradient(cx, cy, 0, cx, cy, r + 20);
+    glow.addColorStop(0, `rgba(255, 107, 107, ${0.1 + hg * 0.2})`);
+    glow.addColorStop(0.5, `rgba(255, 107, 107, ${0.05 + hg * 0.1})`);
+    glow.addColorStop(1, 'rgba(255, 107, 107, 0)');
+    ctx.fillStyle = glow;
+    ctx.beginPath();
+    ctx.arc(cx, cy, r + 20, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Verformter Tropfen
+    const deform = 1 + (form - 0.5) * 0.4;
+    ctx.shadowColor = '#ff6b6b';
+    ctx.shadowBlur = 10 + hg * 20;
+
+    const grad2 = ctx.createRadialGradient(cx - r * 0.2, cy - r * 0.2, 0, cx, cy, r);
+    grad2.addColorStop(0, `rgba(200, 200, 200, ${0.4 + hg * 0.4})`);
+    grad2.addColorStop(0.5, `rgba(180, 180, 180, ${0.3 + hg * 0.3})`);
+    grad2.addColorStop(1, `rgba(120, 120, 120, ${0.2 + hg * 0.2})`);
+    ctx.fillStyle = grad2;
+
+    ctx.beginPath();
+    ctx.ellipse(cx, cy, r * deform, r * (2 - deform) * 0.7, state.t * 0.1, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+
+    // Hg-Label
+    ctx.fillStyle = `rgba(255,255,255,${0.1 + hg * 0.2})`;
+    ctx.font = 'bold 10px Consolas';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('Hg', cx, cy - 2);
+
+    // Dichte
+    ctx.fillStyle = '#666';
+    ctx.font = '6px Consolas';
+    ctx.textBaseline = 'top';
+    ctx.fillText(`${(Hg_DICHTE * hg).toFixed(1)} g/cm³`, cx, cy + r + 4);
+}
+
+function drawFormNetz() {
+    const form = state.form;
+    const n = 8;
+    const r = radius * 0.45;
+
+    // Verformungsgitter
+    for (let i = 0; i < n; i++) {
+        const angle = (i / n) * Math.PI * 2 + state.t * 0.02;
+        const dist = r * (0.4 + form * 0.5);
+        const x = cx + Math.cos(angle + form * 0.2) * dist;
+        const y = cy + Math.sin(angle + form * 0.2) * dist;
+
+        // Verbindungen
+        for (let j = 0; j < n; j++) {
+            const angle2 = (j / n) * Math.PI * 2 + state.t * 0.02 + 0.3;
+            const dist2 = r * (0.4 + form * 0.5);
+            const x2 = cx + Math.cos(angle2 + form * 0.2) * dist2;
+            const y2 = cy + Math.sin(angle2 + form * 0.2) * dist2;
+
+            ctx.strokeStyle = `rgba(107, 207, 255, ${0.02 + form * 0.04})`;
+            ctx.lineWidth = 0.5;
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+            ctx.lineTo(x2, y2);
+            ctx.stroke();
+        }
+    }
+}
+
+function drawLeitLinien() {
+    const leit = state.leit;
+    const r = radius * 0.5;
+
+    // Leitfähigkeitslinien (wie Quecksilber)
+    for (let i = 0; i < 12; i++) {
+        const angle = (i / 12) * Math.PI * 2 + state.t * 0.03;
+        const pulse = 0.5 + 0.5 * Math.sin(state.t * 0.5 + i * 0.5);
+        const dist = r * (0.2 + leit * 0.6 * pulse);
+
+        const x1 = cx + Math.cos(angle) * r * 0.1;
+        const y1 = cy + Math.sin(angle) * r * 0.1;
+        const x2 = cx + Math.cos(angle) * dist;
+        const y2 = cy + Math.sin(angle) * dist;
+
+        ctx.strokeStyle = `rgba(255, 215, 61, ${0.02 + leit * 0.08 * pulse})`;
+        ctx.lineWidth = 0.5 + leit * 1.5 * pulse;
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.stroke();
+    }
+}
+
+function drawRespo() {
+    const val = state.respo;
+    const coreRadius = 2 + val * 6;
+
+    const glow = ctx.createRadialGradient(cx, cy, 0, cx, cy, coreRadius + 6);
+    glow.addColorStop(0, `rgba(108, 204, 255, ${0.1 + val * 0.15})`);
+    glow.addColorStop(1, 'rgba(108, 204, 255, 0)');
+    ctx.fillStyle = glow;
+    ctx.beginPath();
+    ctx.arc(cx, cy, coreRadius + 6, 0, Math.PI * 2);
+    ctx.fill();
+
+    const coreGrad = ctx.createRadialGradient(cx - 2, cy - 2, 0, cx, cy, coreRadius);
+    coreGrad.addColorStop(0, `rgba(108, 204, 255, ${0.3 + val * 0.3})`);
+    coreGrad.addColorStop(0.7, `rgba(60, 180, 220, ${0.15 + val * 0.2})`);
+    coreGrad.addColorStop(1, `rgba(40, 120, 180, ${0.08 + val * 0.15})`);
+    ctx.fillStyle = coreGrad;
+    ctx.shadowColor = '#6cf';
+    ctx.shadowBlur = 4 + val * 6;
+    ctx.beginPath();
+    ctx.arc(cx, cy, coreRadius, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+
+    ctx.fillStyle = '#000';
+    ctx.font = `bold ${3 + val * 2}px Consolas`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('◈', cx, cy);
+
+    ctx.fillStyle = `rgba(255,255,255,${0.1 + val * 0.15})`;
+    ctx.font = '4px Consolas';
+    ctx.textBaseline = 'top';
+    ctx.fillText(`φ = ${state.respo.toFixed(3)}`, cx, cy + coreRadius + 3);
+}
+
+function drawMode() {
+    const mode = state.mode;
+    const colors = { '3': '#ff6b6b', '6': '#6bff6b', '9': '#6b6bff', '81': '#ffd93d' };
+
+    ctx.fillStyle = 'rgba(255,255,255,0.02)';
+    ctx.fillRect(W - 70, 8, 62, 18);
+
+    ctx.fillStyle = colors[mode] || '#666';
+    ctx.font = '6px Consolas';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'top';
+    ctx.fillText(`${mode}TEL · ${(state.value * 100).toFixed(0)}%`, W - 66, 10);
+
+    // Dreieck-Status
+    if (state.dreieck && state.dreieck.length > 0) {
+        const tri = state.dreieck[0] || '△';
+        ctx.fillStyle = '#444';
+        ctx.font = '4px Consolas';
+        ctx.fillText(tri, W - 66, 22);
+    }
+}
+
+// ============================================================
+// 8. CONTROLS
+// ============================================================
+document.getElementById('btn-start').addEventListener('click', function() {
+    state.running = !state.running;
+    this.textContent = state.running ? '⏸ STOP' : '▶ START';
+    document.getElementById('state-display').textContent = state.running ? '● flüssig' : '● erstarrt';
+    document.getElementById('state-display').style.color = state.running ? 'var(--hg)' : '#666';
+    log(state.running ? '▶ Hg · flüssig' : '⏸ Hg · erstarrt', state.running ? 'hg' : 'ok');
+});
+
+document.getElementById('btn-hg').addEventListener('click', function() {
+    state.hg = Math.min(1, state.hg + 0.1);
+    log(`⚡ Hg · ${(state.hg * 100).toFixed(0)}% Dichte`, 'hg');
+});
+
+document.getElementById('btn-fl').addEventListener('click', function() {
+    state.form = Math.min(1, state.form + 0.1);
+    state.verletzt = Math.min(1, state.verletzt + 0.05);
+    log(`🌀 VERFORMT · Form=${(state.form*100).toFixed(0)}% · Verletzt=${(state.verletzt*100).toFixed(0)}%`, 'fl');
+});
+
+document.getElementById('btn-reset').addEventListener('click', function() {
+    state.running = false;
+    state.paused = false;
+    state.cycle = 0;
+    state.t = 0;
+    state.hg = 0.5;
+    state.form = 0.5;
+    state.leit = 0.5;
+    state.verletzt = 0.5;
+    state.syn = 0.5;
+    state.quant = 0.5;
+    state.respo = 0.5;
+    state.mode = '3';
+    state.value = 3;
+    document.getElementById('btn-start').textContent = '▶ START';
+    document.getElementById('state-display').textContent = '● reset';
+    document.getElementById('state-display').style.color = '#f44';
+    document.getElementById('cycle-display').textContent = 'CYC 0';
+    document.getElementById('hg-value').textContent = '50%';
+    document.getElementById('fl-value').textContent = '50%';
+    document.getElementById('lf-value').textContent = '50%';
+    document.getElementById('vz-value').textContent = '50%';
+    log('⟲ RESET · Hg zurückgesetzt', 'ok');
+});
+
+document.getElementById('btn-auto').addEventListener('click', function() {
+    state.autoMode = !state.autoMode;
+    this.textContent = state.autoMode ? '⏸ PAUSE' : '▶ AUTO';
+    if (state.autoMode) {
+        log('▶ AUTO · Hg fließt', 'fl');
+        state.running = true;
+        document.getElementById('btn-start').textContent = '⏸ STOP';
+        document.getElementById('state-display').textContent = '● auto';
+        document.getElementById('state-display').style.color = 'var(--hg)';
+        if (window.autoInterval) clearInterval(window.autoInterval);
+        window.autoInterval = setInterval(function() {
+            state.cycle++;
+            document.getElementById('cycle-display').textContent = `CYC ${state.cycle}`;
+            log(`🔄 CYC ${state.cycle}: Hg=${(state.hg*100).toFixed(0)}% · Form=${(state.form*100).toFixed(0)}% · Verletzt=${(state.verletzt*100).toFixed(0)}%`, 'fl');
+        }, 3000);
+    } else {
+        clearInterval(window.autoInterval);
+        log('⏸ AUTO pausiert', 'ok');
+        document.getElementById('state-display').textContent = '● pausiert';
+        document.getElementById('state-display').style.color = '#ff4';
+    }
+});
+
+// ============================================================
+// 9. TASTATUR
+// ============================================================
+document.addEventListener('keydown', function(e) {
+    if (e.key === ' ') { e.preventDefault(); document.getElementById('btn-start').click(); }
+    if (e.key === 'h' || e.key === 'H') document.getElementById('btn-hg').click();
+    if (e.key === 'f' || e.key === 'F') document.getElementById('btn-fl').click();
+    if (e.key === 'x' || e.key === 'X') document.getElementById('btn-reset').click();
+    if (e.key === 'a' || e.key === 'A') document.getElementById('btn-auto').click();
+});
+
+// ============================================================
+// 10. UHR
+// ============================================================
+function updateClock() {
+    document.getElementById('clock').textContent = '⏱️ ' + new Date().toLocaleTimeString();
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+// ============================================================
+// 11. INIT — GRÜNDER · STATION
+// ============================================================
+log('⚡ GRÜNDER · STATION · Hg · flüssig', 'hg');
+log('3-6-9-81 · DREIGEOLOGRAMM · 81.ROOM', 'fl');
+log('⌨️  space=Start  h=Hg  f=Verformen  x=Reset  a=Auto', 'ok');
+
+console.log('⚡ GRÜNDER · STATION · Hg · flüssig');
+console.log('3-6-9-81 · DREIGEOLOGRAMM · 81.ROOM');
+console.log('⌨️  space=Start  h=Hg  f=Verformen  x=Reset  a=Auto');
+
+setTimeout(function() {
+    state.running = true;
+    document.getElementById('btn-start').textContent = '⏸ STOP';
+    document.getElementById('state-display').textContent = '● flüssig';
+    document.getElementById('state-display').style.color = 'var(--hg)';
+    log('▶ Hg · flüssig · gestartet', 'hg');
+}, 500);
 </script>
-
 </body>
 </html>
