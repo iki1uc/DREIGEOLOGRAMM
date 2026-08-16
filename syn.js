@@ -1,3 +1,3 @@
-export function syn(input) {
-    return input * 3; // deine 3TEL-Regel
+export function syn(x) {
+  return x * 3; // deine 3TEL-Regel
 }
