@@ -1,0 +1,7 @@
+export function atlantis(mode) {
+  switch (mode) {
+    case "△4_TOR": return "ROOT";
+    case "△5_TOR_INVERT": return "BREAK";
+    case "△6_TOR_ECHO": return "ECHO";
+  }
+}
